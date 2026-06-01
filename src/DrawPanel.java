@@ -56,7 +56,7 @@ class DrawPanel extends JPanel implements MouseListener {
         }
 
         g.drawString("Number of cards left: " + d.getDeck().size(), x-10, y + 50);
-        if  (!lost()){
+        if  (lost()){
             g.drawString("YOU LOSE ", x-5, y + 80);
         }
     }
@@ -172,7 +172,7 @@ class DrawPanel extends JPanel implements MouseListener {
                 for (Card card : cardRow) {
                     try {
                         if (Integer.parseInt(card.getValue()) == complement) {
-                            return true;
+                            return false;
                         }
                     } catch (NumberFormatException _) {
                         if (card.getValue().equals("J")) {
@@ -183,13 +183,13 @@ class DrawPanel extends JPanel implements MouseListener {
                             king = true;
                         }
                         if (jack && queen && king){
-                            return true;
+                            return false;
                         }
                     }
                 }
             }
         }
-        return false;
+        return true;
     }
 
     public void mouseReleased(MouseEvent e) { }
