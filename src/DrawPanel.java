@@ -3,8 +3,10 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import javax.swing.JPanel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-class DrawPanel extends JPanel implements MouseListener {
+class DrawPanel extends JPanel implements MouseListener  {
 
     private Deck d;
     private Card[][] cards;
@@ -39,6 +41,12 @@ class DrawPanel extends JPanel implements MouseListener {
         g.drawRect(85, 290, 155, 35);
         restartHitbox = new Rectangle(85,290, 155, 35);
         g.drawString("Play Again", 105, 315);
+
+        Card backCard = new Card();
+        if (!d.getDeck().isEmpty()) {
+            g.drawImage(backCard.getImage(), 300, 100, null);
+        }
+
 
         g2d.setStroke(new BasicStroke(1.0f));
         for (int r = 0; r < cards.length; r++) {
