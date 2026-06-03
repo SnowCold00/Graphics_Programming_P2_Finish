@@ -5,13 +5,19 @@ import java.util.ArrayList;
 import javax.swing.JPanel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.Timer;
 
-class DrawPanel extends JPanel implements MouseListener  {
+class DrawPanel extends JPanel implements ActionListener, MouseListener {
 
     private Deck d;
     private Card[][] cards;
     private Rectangle replaceHitbox;
     private Rectangle restartHitbox;
+    private Timer time;
+    private boolean cardAnimation;
+    private ArrayList<int[]> missingCards;
+    private int[] animationCord= {300, 100};
+
 
 
     public DrawPanel() {
@@ -24,6 +30,9 @@ class DrawPanel extends JPanel implements MouseListener  {
             }
         }
         this.addMouseListener(this);
+        cardAnimation = false;
+        time = new Timer(16, this);
+
     }
 
     protected void paintComponent(Graphics g) {
@@ -51,11 +60,13 @@ class DrawPanel extends JPanel implements MouseListener  {
         g2d.setStroke(new BasicStroke(1.0f));
         for (int r = 0; r < cards.length; r++) {
             for (int c = 0; c < cards.length; c++) {
-                g.drawImage(cards[r][c].getImage(), x, y, null);
-                Rectangle cardHitBox = new Rectangle(x, y, cards[r][c].getImage().getWidth(), cards[r][c].getImage().getHeight());
-                cards[r][c].setHitbox(cardHitBox);
-                if (cards[r][c].getHighlight()) {
-                    g.drawRect(x, y, (int)cardHitBox.getWidth(), (int)cardHitBox.getHeight());
+                if (!(cards[r][c].getValue().equals("0"))) {
+                    g.drawImage(cards[r][c].getImage(), x, y, null);
+                    Rectangle cardHitBox = new Rectangle(x, y, cards[r][c].getImage().getWidth(), cards[r][c].getImage().getHeight());
+                    cards[r][c].setHitbox(cardHitBox);
+                    if (cards[r][c].getHighlight()) {
+                        g.drawRect(x, y, (int) cardHitBox.getWidth(), (int) cardHitBox.getHeight());
+                    }
                 }
                 x += 80;
             }
@@ -83,12 +94,13 @@ class DrawPanel extends JPanel implements MouseListener  {
             }
         }
 
-        if (replaceHitbox.contains(p) && button == 1){
+        if (replaceHitbox.contains(p) && button == 1){ // start animation
             if (canReplace(selectedCards)){
                 for (int r = 0; r < cards.length; r++) {
                     for (int c = 0; c < cards.length; c++) {
-                        if (cards[r][c].getHighlight()) {
-                            cards[r][c] = d.getRandomCard();
+                        if (cards[r][c].getHighlight()) { // removes cards once replaced
+                            cards[r][c] = new Card();
+                            missingCards.add(new int[]{r, c});
                         }
                     }
                 }
@@ -200,8 +212,17 @@ class DrawPanel extends JPanel implements MouseListener  {
         return true;
     }
 
+
+
     public void mouseReleased(MouseEvent e) { }
     public void mouseEntered(MouseEvent e) { }
     public void mouseExited(MouseEvent e) { }
     public void mouseClicked(MouseEvent e) { }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        int xGoal = missingCards.get(0)[0];
+        if (!missingCards.isEmpty()){
+        }
+    }
 }
