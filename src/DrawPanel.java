@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import javax.swing.JPanel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
 import javax.swing.Timer;
 
 class DrawPanel extends JPanel implements ActionListener, MouseListener {
@@ -16,7 +17,8 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
     private Timer time;
     private boolean cardAnimation;
     private ArrayList<int[]> missingCards;
-    private int[] animationCord= {300, 100};
+    private int[] animationCord;
+    private int[] cordGoal;
 
 
 
@@ -31,7 +33,9 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
         }
         this.addMouseListener(this);
         cardAnimation = false;
-        time = new Timer(16, this);
+        time = new Timer(1, this);
+        animationCord= new int[]{300, 100};
+        missingCards = new ArrayList<>();
 
     }
 
@@ -54,6 +58,10 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
         Card backCard = new Card();
         if (!d.getDeck().isEmpty()) {
             g.drawImage(backCard.getImage(), 300, 100, null);
+        }
+
+        if (cardAnimation){
+            g.drawImage(backCard.getImage(), animationCord[0], animationCord[1], null);//it only moves down one before stopping
         }
 
 
@@ -99,11 +107,13 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
                 for (int r = 0; r < cards.length; r++) {
                     for (int c = 0; c < cards.length; c++) {
                         if (cards[r][c].getHighlight()) { // removes cards once replaced
-                            cards[r][c] = new Card();
+                            cards[r][c] = new Card(); //creates a card with value 0 placeholder
+                            System.out.println(r + c);
                             missingCards.add(new int[]{r, c});
                         }
                     }
                 }
+                time.start();
             }
         } else if (restartHitbox.contains(p) && button == 1) {
             System.out.println(1);
@@ -220,9 +230,38 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
     public void mouseClicked(MouseEvent e) { }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
-        int xGoal = missingCards.get(0)[0];
+    public void actionPerformed(ActionEvent e) { //only add 1 new one you need to add two
+        cordGoal = new int[] {50+80*(missingCards.getFirst()[0]), 10+100*(missingCards.getFirst()[1])};
+
+
         if (!missingCards.isEmpty()){
+            cardAnimation = true;
+            if (animationCord[0] != cordGoal[0]) {
+                animationCord[0] -= 1;
+            }
+            if (animationCord[1] != cordGoal[1]) {
+                if (animationCord[1] < cordGoal[1]) {
+                    animationCord[1] += 1;
+                } else if (animationCord[1] > cordGoal[1]){
+                    animationCord[1] -= 1;
+                }
+            }
+            System.out.println(animationCord[0]);
+            System.out.println(animationCord[1]);
+            if (cordGoal[0] == animationCord[0] && cordGoal[1] == animationCord[1]){//runs the while loop infinitely
+                for (int[] card:missingCards){
+                    System.out.println(Arrays.toString(card));
+                }
+                System.out.println("reset");
+                System.out.println();
+                animationCord= new int[]{300, 100};
+                int[] temp = missingCards.removeFirst();
+                cards[temp[0]][temp[1]] = d.getRandomCard();
+            }
+
+        } else {
+            cardAnimation = false;
+            time.stop();
         }
     }
 }
