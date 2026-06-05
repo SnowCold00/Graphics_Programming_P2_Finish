@@ -231,11 +231,11 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
 
     @Override
     public void actionPerformed(ActionEvent e) { //only add 1 new one you need to add two
-        cordGoal = new int[] {50+80*(missingCards.getFirst()[0]), 10+100*(missingCards.getFirst()[1])};
 
 
         if (!missingCards.isEmpty()){
             cardAnimation = true;
+            cordGoal = new int[] {10+100*(missingCards.getFirst()[1]), 50+80*(missingCards.getFirst()[0]),};
             if (animationCord[0] != cordGoal[0]) {
                 animationCord[0] -= 1;
             }
