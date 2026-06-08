@@ -19,6 +19,9 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
     private ArrayList<int[]> missingCards;
     private int[] animationCord;
     private int[] cordGoal;
+    private boolean turnAniEnd;
+    private double turnScale;
+    private boolean turnAniStart;
 
 
 
@@ -36,6 +39,9 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
         time = new Timer(1, this);
         animationCord= new int[]{300, 100};
         missingCards = new ArrayList<>();
+        turnAniEnd = false;
+        turnScale = 1;
+        turnAniStart = false;
 
     }
 
@@ -61,8 +67,13 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
         }
 
         if (cardAnimation){
-            g.drawImage(backCard.getImage(), animationCord[0], animationCord[1], null);//it only moves down one before stopping
+            g.drawImage(backCard.getImage(), animationCord[0], animationCord[1], null);
+        } else if (turnAniStart){
+            System.out.println(turnScale);
+            g2d.scale(turnScale,1);
+            g.drawImage(backCard.getImage(), animationCord[0], animationCord[1], null);
         }
+        g2d.scale(1,1);
 
 
         g2d.setStroke(new BasicStroke(1.0f));
@@ -123,6 +134,9 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
                     cards[r][c] = d.getRandomCard();
                 }
             }
+            animationCord= new int[]{300, 100};
+            missingCards = new ArrayList<>();
+            time.stop();
         } else {
             for (int r = 0; r < cards.length; r++) {
                 for (int c = 0; c < cards.length; c++) {
@@ -230,12 +244,12 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
     public void mouseClicked(MouseEvent e) { }
 
     @Override
-    public void actionPerformed(ActionEvent e) { //only add 1 new one you need to add two
+    public void actionPerformed(ActionEvent e) { //moves the entire grid or resizes the entire grid. Turn scale goes negative as well.
 
 
         if (!missingCards.isEmpty()){
             cardAnimation = true;
-            cordGoal = new int[] {10+100*(missingCards.getFirst()[1]), 50+80*(missingCards.getFirst()[0]),};
+            cordGoal = new int[] {50+80*(missingCards.getFirst()[1]), 10+100*(missingCards.getFirst()[0])};
             if (animationCord[0] != cordGoal[0]) {
                 animationCord[0] -= 1;
             }
@@ -248,15 +262,34 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
             }
             System.out.println(animationCord[0]);
             System.out.println(animationCord[1]);
-            if (cordGoal[0] == animationCord[0] && cordGoal[1] == animationCord[1]){//runs the while loop infinitely
-                for (int[] card:missingCards){
-                    System.out.println(Arrays.toString(card));
+            if (cordGoal[0] == animationCord[0] && cordGoal[1] == animationCord[1]) {
+                cardAnimation = false;
+                if (cards[missingCards.getFirst()[1]][missingCards.getFirst()[0]].getValue().equals("0")) {
+                    turnAniStart = true;
+                    turnScale -= 0.05;
+                    if (turnScale == 0.05){
+                        int[] temp = missingCards.removeFirst();
+                        cards[temp[0]][temp[1]] = d.getRandomCard();
+                    }
+                } else {
+                    turnScale += 0.05;
+                    if (turnScale == 0.95){
+                        turnAniEnd = true;
+                    }
                 }
-                System.out.println("reset");
-                System.out.println();
-                animationCord= new int[]{300, 100};
-                int[] temp = missingCards.removeFirst();
-                cards[temp[0]][temp[1]] = d.getRandomCard();
+                if (turnAniEnd) {
+                    turnAniStart = false;
+                    turnScale = 1;
+                    turnAniEnd = false;
+                    for (int[] card : missingCards) {
+                        System.out.println(Arrays.toString(card) + "1");
+                    }
+                    System.out.println("reset");
+                    System.out.println();
+                    animationCord = new int[]{300, 100};
+                    //int[] temp = missingCards.removeFirst();
+                    //cards[temp[0]][temp[1]] = d.getRandomCard();
+                }
             }
 
         } else {
