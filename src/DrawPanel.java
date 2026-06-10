@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import javax.swing.JPanel;
 import java.awt.event.ActionEvent;
@@ -22,6 +23,9 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
     private boolean turnAniEnd;
     private double turnScale;
     private boolean turnAniStart;
+    private boolean scaleDirection;
+    private int[] currentCard;
+    private Card cardMoving;
 
 
 
@@ -36,12 +40,14 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
         }
         this.addMouseListener(this);
         cardAnimation = false;
-        time = new Timer(1, this);
+        time = new Timer(7, this);
         animationCord= new int[]{300, 100};
         missingCards = new ArrayList<>();
         turnAniEnd = false;
         turnScale = 1;
         turnAniStart = false;
+        scaleDirection = false;
+        currentCard = new int[]{0, 0};
 
     }
 
@@ -69,11 +75,18 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
         if (cardAnimation){
             g.drawImage(backCard.getImage(), animationCord[0], animationCord[1], null);
         } else if (turnAniStart){
-            System.out.println(turnScale);
-            g2d.scale(turnScale,1);
-            g.drawImage(backCard.getImage(), animationCord[0], animationCord[1], null);
+            Graphics2D tempG2d = (Graphics2D) g2d.create();
+            AffineTransform old = tempG2d.getTransform();
+            tempG2d.translate(animationCord[0] + 40, animationCord[1]);
+            tempG2d.scale(turnScale,1);
+            if (scaleDirection) {
+                tempG2d.drawImage(cardMoving.getImage(), -40 , 0, null);
+            } else if (!scaleDirection){
+                tempG2d.drawImage(backCard.getImage(), -40, 0, null);
+            }
+            tempG2d.setTransform(old);
+            tempG2d.dispose();
         }
-        g2d.scale(1,1);
 
 
         g2d.setStroke(new BasicStroke(1.0f));
@@ -94,7 +107,7 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
         }
 
         g.drawString("Number of cards left: " + d.getDeck().size(), x-10, y + 50);
-        if  (lost()){
+        if  (lost() && !time.isRunning()){
             g.drawString("YOU LOSE ", x-5, y + 80);
         }
     }
@@ -119,8 +132,9 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
                     for (int c = 0; c < cards.length; c++) {
                         if (cards[r][c].getHighlight()) { // removes cards once replaced
                             cards[r][c] = new Card(); //creates a card with value 0 placeholder
-                            System.out.println(r + c);
+                            //System.out.println(r + c);
                             missingCards.add(new int[]{r, c});
+                            //System.out.println(cards[r][c]);
                         }
                     }
                 }
@@ -246,7 +260,6 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
     @Override
     public void actionPerformed(ActionEvent e) { //moves the entire grid or resizes the entire grid. Turn scale goes negative as well.
 
-
         if (!missingCards.isEmpty()){
             cardAnimation = true;
             cordGoal = new int[] {50+80*(missingCards.getFirst()[1]), 10+100*(missingCards.getFirst()[0])};
@@ -260,27 +273,35 @@ class DrawPanel extends JPanel implements ActionListener, MouseListener {
                     animationCord[1] -= 1;
                 }
             }
-            System.out.println(animationCord[0]);
-            System.out.println(animationCord[1]);
+            //System.out.println(animationCord[0]);
+            //System.out.println(animationCord[1]);
             if (cordGoal[0] == animationCord[0] && cordGoal[1] == animationCord[1]) {
                 cardAnimation = false;
-                if (cards[missingCards.getFirst()[1]][missingCards.getFirst()[0]].getValue().equals("0")) {
+                if (cards[missingCards.getFirst()[0]][missingCards.getFirst()[1]].getValue().equals("0")) {//starts the flip
                     turnAniStart = true;
-                    turnScale -= 0.05;
-                    if (turnScale == 0.05){
-                        int[] temp = missingCards.removeFirst();
-                        cards[temp[0]][temp[1]] = d.getRandomCard();
-                    }
-                } else {
-                    turnScale += 0.05;
-                    if (turnScale == 0.95){
-                        turnAniEnd = true;
+                }
+                if (turnAniStart){
+                    if (!scaleDirection) {
+                        turnScale -= 0.01;
+                        if (turnScale <= 0.05) {
+                            scaleDirection = true;
+                            cardMoving = d.getRandomCard();
+                            currentCard = missingCards.getFirst();
+                        }
+                    }else if (scaleDirection){
+                        turnScale += 0.01;
+                        if (turnScale >= 0.95){
+                            turnAniEnd = true;
+                        }
                     }
                 }
-                if (turnAniEnd) {
+                if (turnAniEnd) { //doesnt run
+                    int[] temp = missingCards.removeFirst();
+                    cards[temp[0]][temp[1]] = cardMoving;
                     turnAniStart = false;
                     turnScale = 1;
                     turnAniEnd = false;
+                    scaleDirection = false;
                     for (int[] card : missingCards) {
                         System.out.println(Arrays.toString(card) + "1");
                     }

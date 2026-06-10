@@ -1,6 +1,6 @@
 public class Main {
     public static void main(String[] args) {
 
-        MainFrame frame = new MainFrame("Cards!!");
+        MainFrame frame = new MainFrame("Cards!!");//flip works but keep flip in one place
     }
 }
